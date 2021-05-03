@@ -100,12 +100,12 @@ public class MetroDAO {
 		}
 	}
 	
-	public List<Connessione> getAllConnessioni(){
+	public List<Connessione> getAllConnessioni(List<Fermata> fermate){
 		String sql = "SELECT id_connessione, id_linea, id_stazP, id_stazA "
 				+ "FROM connessione "
 				+ "WHERE id_stazP > id_stazA";
 		
-		List<Connessione> con = new ArrayList<>();
+		List<Connessione> result = new ArrayList<>();
 		try {
 			Connection conn = DBConnect.getConnection();
 			PreparedStatement st = conn.prepareStatement(sql);
@@ -113,17 +113,30 @@ public class MetroDAO {
 			ResultSet rs = st.executeQuery();
 			while(rs.next()) {
 				int id_partenza = rs.getInt("id_stazP");
+				Fermata fermata_partenza = null;
+				for(Fermata f: fermate) {
+					if(f.getIdFermata() == id_partenza)
+						fermata_partenza = f;
+						
+				}
+				
 				int id_arrivo = rs.getInt("id_stazA");
+				Fermata fermata_arrivo = null;
+				for(Fermata f: fermate) {
+					if(f.getIdFermata() == id_arrivo)
+						fermata_arrivo = f;
+						
+				}
 				
-				
-				Connessione c = new Connessione(rs.getInt("id_connessione"), null, null, null);
+				Connessione c = new Connessione(rs.getInt("id_connessione"), null, fermata_partenza, fermata_arrivo);
+				result.add(c);
 			}
 						
 						
 			st.close();
 			conn.close();
 
-			return con;
+			return result;
 		} catch (SQLException e) {
 			e.printStackTrace();
 			throw new RuntimeException("Errore di connessione al Database.");
